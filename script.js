@@ -49,8 +49,9 @@ function changeFont() {
 }
 
 function resetQuoteChangeTimer() {
+    const randomChangeTimeMS = 30000
     clearInterval(quoteChangeInterval);
-    quoteChangeInterval = setInterval(displayRandomQuote, 10000);
+    quoteChangeInterval = setInterval(displayRandomQuote, randomChangeTimeMS);
 }
 
 // Change quote on click/tap
