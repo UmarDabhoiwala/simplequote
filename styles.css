@@ -1,0 +1,53 @@
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+.quote-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+    padding: 20px;
+}
+
+#quote {
+    font-size: 4vw;
+    font-weight: bold;
+    transition: opacity 0.5s ease-in-out;
+}
+
+#font-name {
+    font-size: 1rem;
+    margin-top: 10px;
+    opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+    #quote {
+        font-size: 6vw;
+    }
+}
+
+#change-font {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#change-font:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+}
