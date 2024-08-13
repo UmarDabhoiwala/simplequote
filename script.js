@@ -1,14 +1,14 @@
 let quotes = [];
+let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+let quoteChangeInterval;
+
 const fonts = [
     'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Raleway', 'Oswald', 'Merriweather',
     'Playfair Display', 'Quicksand', 'Comfortaa', 'Josefin Sans', 'Cormorant Garamond',
     'Crimson Text', 'Archivo', 'Bebas Neue', 'Titillium Web', 'Nunito', 'Fira Sans',
-    'Bangers', 'Permanent Marker', 'Caveat', 'Shadows Into Light', 'Dancing Script',
+    'Bangers', 'Caveat', 'Shadows Into Light', 'Dancing Script',
     'Pacifico', 'Amatic SC', 'Righteous', 'Indie Flower', 'Lobster'
 ];
-
-
-let quoteChangeInterval;
 
 function loadFonts() {
     const fontLink = document.createElement('link');
@@ -17,18 +17,18 @@ function loadFonts() {
     document.head.appendChild(fontLink);
 }
 
-loadFonts();
-
-fetch('quotes.txt')
-    .then(response => response.text())
-    .then(data => {
-        quotes = data.split('\n').filter(line => line.trim() !== '');
-        displayRandomQuote();
-    })
-    .catch(error => {
-        console.error('Error loading quotes:', error);
-        document.getElementById('quote').textContent = 'Failed to load quotes. Please try again later.';
-    });
+function fetchQuotes() {
+    fetch('quotes.txt')
+        .then(response => response.text())
+        .then(data => {
+            quotes = data.split('\n').filter(line => line.trim() !== '');
+            displayRandomQuote();
+        })
+        .catch(error => {
+            console.error('Error loading quotes:', error);
+            document.getElementById('quote').textContent = 'Failed to load quotes. Please try again later.';
+        });
+}
 
 function displayRandomQuote() {
     const quoteElement = document.getElementById('quote');
@@ -46,29 +46,30 @@ function displayRandomQuote() {
 
 function changeFont() {
     const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
-    document.body.style.fontFamily = `'${randomFont}', sans-serif`;
-    document.getElementById('font-name').textContent = randomFont;
+    setFont(randomFont);
+}
+
+function setFont(font) {
+    document.body.style.fontFamily = `'${font}', sans-serif`;
+    document.getElementById('font-name').textContent = font;
+    localStorage.setItem('lastFont', font);
 }
 
 function resetQuoteChangeTimer() {
-    const randomChangeTimeMS = 25000
     clearInterval(quoteChangeInterval);
-    quoteChangeInterval = setInterval(displayRandomQuote, randomChangeTimeMS);
+    quoteChangeInterval = setInterval(displayRandomQuote, 25000);
 }
 
-// Toggle theme
 function toggleTheme() {
     document.body.classList.toggle('dark-mode');
     localStorage.setItem('dark-mode', document.body.classList.contains('dark-mode'));
 }
 
-let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-
 function toggleFavorite() {
     const currentQuote = document.getElementById('quote').textContent;
     const favoriteButton = document.getElementById('favorite-button');
-
     const index = favorites.indexOf(currentQuote);
+
     if (index === -1) {
         favorites.push(currentQuote);
         favoriteButton.classList.add('favorited');
@@ -94,23 +95,63 @@ function updateFavoriteButton() {
         favoriteButton.textContent = '🤍';
     }
 }
-// Change font when button is clicked
-document.getElementById('change-font').addEventListener('click', changeFont);
 
-document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+function showFavoritesModal() {
+    const modal = document.getElementById('favorites-modal');
+    const favoritesList = document.getElementById('favorites-list');
+    favoritesList.innerHTML = '';
 
-document.getElementById('favorite-button').addEventListener('click', toggleFavorite);
+    favorites.forEach(quote => {
+        const li = document.createElement('li');
+        li.textContent = quote;
+        favoritesList.appendChild(li);
+    });
 
-document.body.addEventListener('click', (event) => {
-    if (event.target.id !== 'change-font' && event.target.id !== 'theme-toggle' && event.target.id !== 'favorite-button' && quotes.length > 0) {
-        displayRandomQuote();
-    }
-});
-
-// Set initial theme
-if (localStorage.getItem('dark-mode') === 'true') {
-    document.body.classList.add('dark-mode');
+    modal.style.display = 'block';
 }
-// Initial font change and start the timer
-changeFont();
-resetQuoteChangeTimer();
+
+function closeFavoritesModal() {
+    document.getElementById('favorites-modal').style.display = 'none';
+}
+
+function isButton(element) {
+    return element.tagName === 'BUTTON' || element.closest('button');
+}
+
+function initializeEventListeners() {
+    document.body.addEventListener('click', (event) => {
+        if (!isButton(event.target) && quotes.length > 0) {
+            displayRandomQuote();
+        } else if (event.target.id === 'change-font') {
+            changeFont();
+        } else if (event.target.id === 'theme-toggle') {
+            toggleTheme();
+        } else if (event.target.id === 'favorite-button') {
+            toggleFavorite();
+        } else if (event.target.id === 'favorites-menu') {
+            showFavoritesModal();
+        }
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target === document.getElementById('favorites-modal')) {
+            closeFavoritesModal();
+        }
+    });
+
+    document.querySelector('.close').addEventListener('click', closeFavoritesModal);
+}
+
+function initialize() {
+    loadFonts();
+    fetchQuotes();
+    initializeEventListeners();
+    if (localStorage.getItem('dark-mode') === 'true') {
+        document.body.classList.add('dark-mode');
+    }
+    const lastFont = localStorage.getItem('lastFont') || 'Roboto';
+    setFont(lastFont);
+    resetQuoteChangeTimer();
+}
+
+initialize();
