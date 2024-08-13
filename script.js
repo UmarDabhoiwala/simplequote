@@ -7,6 +7,7 @@ const fonts = [
     'Pacifico', 'Amatic SC', 'Righteous', 'Indie Flower', 'Lobster'
 ];
 
+
 let quoteChangeInterval;
 
 function loadFonts() {
@@ -40,6 +41,7 @@ function displayRandomQuote() {
         }, 500);
     }
     resetQuoteChangeTimer();
+    updateFavoriteButton();
 }
 
 function changeFont() {
@@ -49,21 +51,66 @@ function changeFont() {
 }
 
 function resetQuoteChangeTimer() {
-    const randomChangeTimeMS = 30000
+    const randomChangeTimeMS = 25000
     clearInterval(quoteChangeInterval);
     quoteChangeInterval = setInterval(displayRandomQuote, randomChangeTimeMS);
 }
 
-// Change quote on click/tap
+// Toggle theme
+function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('dark-mode', document.body.classList.contains('dark-mode'));
+}
+
+let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+
+function toggleFavorite() {
+    const currentQuote = document.getElementById('quote').textContent;
+    const favoriteButton = document.getElementById('favorite-button');
+
+    const index = favorites.indexOf(currentQuote);
+    if (index === -1) {
+        favorites.push(currentQuote);
+        favoriteButton.classList.add('favorited');
+        favoriteButton.textContent = '❤️';
+    } else {
+        favorites.splice(index, 1);
+        favoriteButton.classList.remove('favorited');
+        favoriteButton.textContent = '🤍';
+    }
+
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+}
+
+function updateFavoriteButton() {
+    const currentQuote = document.getElementById('quote').textContent;
+    const favoriteButton = document.getElementById('favorite-button');
+
+    if (favorites.includes(currentQuote)) {
+        favoriteButton.classList.add('favorited');
+        favoriteButton.textContent = '❤️';
+    } else {
+        favoriteButton.classList.remove('favorited');
+        favoriteButton.textContent = '🤍';
+    }
+}
+// Change font when button is clicked
+document.getElementById('change-font').addEventListener('click', changeFont);
+
+document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+document.getElementById('favorite-button').addEventListener('click', toggleFavorite);
+
 document.body.addEventListener('click', (event) => {
-    if (event.target.id !== 'change-font' && quotes.length > 0) {
+    if (event.target.id !== 'change-font' && event.target.id !== 'theme-toggle' && event.target.id !== 'favorite-button' && quotes.length > 0) {
         displayRandomQuote();
     }
 });
 
-// Change font when button is clicked
-document.getElementById('change-font').addEventListener('click', changeFont);
-
+// Set initial theme
+if (localStorage.getItem('dark-mode') === 'true') {
+    document.body.classList.add('dark-mode');
+}
 // Initial font change and start the timer
 changeFont();
 resetQuoteChangeTimer();
