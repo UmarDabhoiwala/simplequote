@@ -113,7 +113,6 @@ function showFavoritesModal() {
 
     modal.style.display = 'block';
 
-    // Add event listeners to remove buttons
     document.querySelectorAll('.remove-favorite').forEach(button => {
         button.addEventListener('click', removeFavorite);
     });
