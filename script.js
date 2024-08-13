@@ -38,10 +38,11 @@ function displayRandomQuote() {
             const randomIndex = Math.floor(Math.random() * quotes.length);
             quoteElement.textContent = quotes[randomIndex];
             quoteElement.style.opacity = 1;
+            updateFavoriteButton();
         }, 500);
     }
+
     resetQuoteChangeTimer();
-    updateFavoriteButton();
 }
 
 function changeFont() {
@@ -101,13 +102,29 @@ function showFavoritesModal() {
     const favoritesList = document.getElementById('favorites-list');
     favoritesList.innerHTML = '';
 
-    favorites.forEach(quote => {
+    favorites.forEach((quote, index) => {
         const li = document.createElement('li');
-        li.textContent = quote;
+        li.innerHTML = `
+            <span class="quote-text">${quote}</span>
+            <button class="remove-favorite" data-index="${index}">×</button>
+        `;
         favoritesList.appendChild(li);
     });
 
     modal.style.display = 'block';
+
+    // Add event listeners to remove buttons
+    document.querySelectorAll('.remove-favorite').forEach(button => {
+        button.addEventListener('click', removeFavorite);
+    });
+}
+
+function removeFavorite(event) {
+    const index = parseInt(event.target.getAttribute('data-index'));
+    favorites.splice(index, 1);
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+    showFavoritesModal();
+    updateFavoriteButton();
 }
 
 function closeFavoritesModal() {
@@ -120,7 +137,7 @@ function isButton(element) {
 
 function initializeEventListeners() {
     document.body.addEventListener('click', (event) => {
-        if (!isButton(event.target) && quotes.length > 0) {
+        if (!isButton(event.target) && !event.target.closest('.modal-content') && quotes.length > 0) {
             displayRandomQuote();
         } else if (event.target.id === 'change-font') {
             changeFont();
@@ -139,7 +156,10 @@ function initializeEventListeners() {
         }
     });
 
-    document.querySelector('.close').addEventListener('click', closeFavoritesModal);
+    document.querySelector('.close').addEventListener('click', (event) => {
+        event.stopPropagation();
+        closeFavoritesModal();
+    });
 }
 
 function initialize() {
